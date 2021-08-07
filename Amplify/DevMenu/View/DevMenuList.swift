@@ -10,6 +10,11 @@ import SwiftUI
 /// View containing a list of developer menu items
 @available(iOS 13.0.0, *)
 struct DevMenuList: View {
+    private let contextProvider: DevMenuPresentationContextProvider
+    
+    init(contextProvider: DevMenuPresentationContextProvider) {
+        self.contextProvider = contextProvider
+    }
 
     private let screenTitle = "Amplify Developer Menu"
     private let amplifyDevMenuListItems: [DevMenuItem] =
@@ -23,7 +28,7 @@ struct DevMenuList: View {
     var body: some View {
         NavigationView {
             SwiftUI.List(amplifyDevMenuListItems) { listItem in
-                NavigationLink(destination: DetailViewFactory.getDetailView(type: listItem.type)) {
+                NavigationLink(destination: DetailViewFactory.getDetailView(type: listItem.type, contextProvider: contextProvider)) {
                     DevMenuRow(rowItem: listItem)
                 }
             }
@@ -37,6 +42,6 @@ struct DevMenuList: View {
 @available(iOS 13.0.0, *)
 struct AmplifyDevMenuList_Previews: PreviewProvider {
     static var previews: some View {
-        DevMenuList()
+        DevMenuList(contextProvider: PreviewDevMenuPresentationContextProvider())
     }
 }

@@ -11,11 +11,17 @@ import UIKit
 /// Issue report screen in developer menu
 @available(iOS 13.0, *)
 struct IssueReporter: View {
+    private let contextProvider: DevMenuPresentationContextProvider
+    
     @State var issueDescription: String = ""
     @State var includeLogs = true
     @State var includeEnvInfo = true
     @State var includeDeviceInfo = true
     @State var showAlertIfInvalidURL = false
+    
+    init(contextProvider: DevMenuPresentationContextProvider) {
+        self.contextProvider = contextProvider
+    }
 
     private static let minCharacterLimit = 140
     private let issueDescriptionHint = "Please provide a short description of the issue.."
@@ -33,7 +39,11 @@ struct IssueReporter: View {
     var body: some View {
         ScrollView {
             VStack {
-                MultilineTextField(text: $issueDescription, placeHolderText: issueDescriptionHint)
+                MultilineTextField(
+                    text: $issueDescription,
+                    placeHolderText: issueDescriptionHint,
+                    contextProvider: contextProvider
+                )
                     .border(Color.gray)
                     .frame(height: 350)
 
@@ -107,8 +117,8 @@ struct IssueReporter: View {
             return
         }
 
-        UIApplication.shared.open(urlToOpen)
-    }
+        contextProvider.openURLExternally(urlToOpen)
+}
 
     /// Copy issue as a markdown string to clipboard
     private func copyToClipboard() {
@@ -124,17 +134,19 @@ struct IssueReporter: View {
 @available(iOS 13.0.0, *)
 final class IssueReporter_Previews: PreviewProvider {
     static var previews: some View {
-        IssueReporter()
+        IssueReporter(contextProvider: PreviewDevMenuPresentationContextProvider())
     }
 }
 
 /// Custom defined view for multi line text field
 @available(iOS 13.0, *)
 final class MultilineTextField: UIViewRepresentable {
+    private let contextProvider: DevMenuPresentationContextProvider
     @Binding var text: String
     var placeHolderText: String = ""
-
-    init(text: Binding<String>, placeHolderText: String) {
+    
+    init(text: Binding<String>, placeHolderText: String, contextProvider: DevMenuPresentationContextProvider) {
+        self.contextProvider = contextProvider
         self._text = text
         self.placeHolderText = placeHolderText
     }
@@ -162,8 +174,7 @@ final class MultilineTextField: UIViewRepresentable {
     }
 
     @objc func dismissKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder),
-                                        to: nil, from: nil, for: nil)
+        contextProvider.dismissKeyboard()
     }
 
     func updateUIView(_ uiView: UITextView, context: Context) {
